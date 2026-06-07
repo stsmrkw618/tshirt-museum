@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/navigation";
+import { ServiceWorker } from "@/components/service-worker";
 import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export default async function RootLayout({
   return (
     <html lang="ja" className={`${geistSans.variable} h-full`}>
       <body className="min-h-full bg-black text-white antialiased">
+        <ServiceWorker />
         {user && <Navigation />}
         <main className={user ? "pt-14" : ""}>{children}</main>
       </body>
