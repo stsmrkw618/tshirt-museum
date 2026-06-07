@@ -2,22 +2,34 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
 import { TodayPick } from "@/components/today-pick";
+import type { Tshirt } from "@/lib/types";
+
+function getDayPick(items: Tshirt[]): Tshirt | null {
+  if (items.length === 0) return null;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const seed = dateStr.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return items[seed % items.length];
+}
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ count }, { data: recent }, { data: priceData }] = await Promise.all([
-    supabase.from("tshirts").select("*", { count: "exact", head: true }),
-    supabase
-      .from("tshirts")
-      .select("id,title,series,thumb_url")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase.from("tshirts").select("purchase_price"),
-  ]);
+  const [{ count }, { data: recent }, { data: priceData }, { data: allItems }] =
+    await Promise.all([
+      supabase.from("tshirts").select("*", { count: "exact", head: true }),
+      supabase
+        .from("tshirts")
+        .select("id,title,series,thumb_url")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase.from("tshirts").select("purchase_price"),
+      supabase.from("tshirts").select("*"),
+    ]);
 
   const totalPrice =
     priceData?.reduce((sum, t) => sum + (t.purchase_price ?? 0), 0) ?? 0;
+
+  const todayItem = getDayPick(allItems ?? []);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
@@ -38,8 +50,8 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* today's pick */}
-      <TodayPick />
+      {/* today's pick（サーバーサイド・ちらつきなし） */}
+      {todayItem && <TodayPick item={todayItem} />}
 
       {/* recent */}
       <section>
@@ -56,13 +68,13 @@ export default async function HomePage() {
           <div className="grid grid-cols-5 gap-3">
             {recent.map((t) => (
               <Link key={t.id} href={`/collection/${t.id}`} className="group">
-                <div className="aspect-square bg-zinc-900 rounded-lg overflow-hidden">
+                <div className="aspect-[3/4] bg-zinc-900 rounded-lg overflow-hidden">
                   {t.thumb_url ? (
                     <Image
                       src={t.thumb_url}
                       alt={t.title}
                       width={200}
-                      height={200}
+                      height={267}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (

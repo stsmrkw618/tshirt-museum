@@ -18,16 +18,16 @@ export function CollectionGrid({ tshirts }: { tshirts: Item[] }) {
   }
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
       {tshirts.map((t) => (
         <Link key={t.id} href={`/collection/${t.id}`} className="group">
-          <div className="aspect-square bg-zinc-900 rounded-lg overflow-hidden">
+          <div className="aspect-[3/4] bg-zinc-900 rounded-lg overflow-hidden">
             {t.thumb_url ? (
               <Image
                 src={t.thumb_url}
                 alt={t.title}
-                width={200}
-                height={200}
+                width={300}
+                height={400}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (

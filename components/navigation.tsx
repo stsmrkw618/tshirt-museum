@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Grid3X3, BarChart3, Maximize } from "lucide-react";
+import { Home, Grid3X3, BarChart3, Maximize, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -18,7 +18,10 @@ export function Navigation() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-zinc-800 h-14">
       <div className="max-w-5xl mx-auto px-4 h-full flex items-center justify-between">
-        <Link href="/" className="text-white font-bold text-sm tracking-widest uppercase">
+        <Link
+          href="/"
+          className="text-white font-bold text-sm tracking-widest uppercase"
+        >
           T-Shirt Museum
         </Link>
         <div className="flex items-center gap-1">
@@ -37,6 +40,17 @@ export function Navigation() {
               <span className="hidden sm:inline">{label}</span>
             </Link>
           ))}
+          <Link
+            href="/settings"
+            className={cn(
+              "flex items-center px-2.5 py-1.5 rounded-md transition-colors ml-1",
+              pathname === "/settings"
+                ? "bg-zinc-800 text-white"
+                : "text-zinc-600 hover:text-white hover:bg-zinc-900"
+            )}
+          >
+            <Settings size={14} />
+          </Link>
         </div>
       </div>
     </nav>
