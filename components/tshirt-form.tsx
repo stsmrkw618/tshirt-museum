@@ -70,8 +70,16 @@ export function TshirtForm({ initialData }: { initialData?: Tshirt }) {
     }
 
     const payload = {
-      ...form,
+      title: form.title,
+      series: form.series,
+      character: form.character || null,
+      manufacturer: form.manufacturer || null,
+      purchase_date: form.purchase_date || null,
+      purchase_place: form.purchase_place || null,
       purchase_price: form.purchase_price ? Number(form.purchase_price) : null,
+      size: form.size || null,
+      condition: form.condition || null,
+      memo: form.memo || null,
       image_url,
       thumb_url,
     };
