@@ -12,6 +12,11 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Anime T-Shirt Museum",
   description: "個人アニメTシャツコレクション",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "T-Shirt Museum",
+  },
 };
 
 export default async function RootLayout({
