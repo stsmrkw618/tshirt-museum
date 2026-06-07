@@ -14,7 +14,8 @@ export default async function AnalyticsPage() {
 
   // 作品ランキング
   const seriesCount = tshirts.reduce<Record<string, number>>((acc, t) => {
-    acc[t.series] = (acc[t.series] ?? 0) + 1;
+    const key = t.series.trim();
+    acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
   const seriesRanking = Object.entries(seriesCount)
@@ -33,7 +34,8 @@ export default async function AnalyticsPage() {
   // 購入場所ランキング
   const placeCount = tshirts.reduce<Record<string, number>>((acc, t) => {
     if (!t.purchase_place) return acc;
-    acc[t.purchase_place] = (acc[t.purchase_place] ?? 0) + 1;
+    const key = t.purchase_place.trim();
+    acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
   const placeRanking = Object.entries(placeCount)
