@@ -11,7 +11,15 @@ const SORTS = [
   { value: "title", label: "タイトル順" },
 ];
 
-export function CollectionFilters({ seriesList }: { seriesList: string[] }) {
+export function CollectionFilters({
+  seriesList,
+  activeYear,
+  activePlace,
+}: {
+  seriesList: string[];
+  activeYear?: string;
+  activePlace?: string;
+}) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -68,6 +76,30 @@ export function CollectionFilters({ seriesList }: { seriesList: string[] }) {
           </button>
         ))}
       </div>
+
+      {/* 年・場所のアクティブフィルタ */}
+      {(activeYear || activePlace) && (
+        <div className="flex gap-2 flex-wrap">
+          {activeYear && (
+            <button
+              onClick={() => update({ year: null })}
+              className="flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-zinc-600 text-white"
+            >
+              {activeYear}年
+              <X size={10} />
+            </button>
+          )}
+          {activePlace && (
+            <button
+              onClick={() => update({ place: null })}
+              className="flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-zinc-600 text-white"
+            >
+              {activePlace}
+              <X size={10} />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 作品フィルタチップ */}
       {seriesList.length > 0 && (

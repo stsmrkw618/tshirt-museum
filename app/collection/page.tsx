@@ -8,7 +8,7 @@ import { Suspense } from "react";
 export default async function CollectionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; series?: string; q?: string }>;
+  searchParams: Promise<{ sort?: string; series?: string; q?: string; year?: string; place?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -18,6 +18,12 @@ export default async function CollectionPage({
     .select("id,title,series,thumb_url");
 
   if (params.series) query = query.eq("series", params.series);
+  if (params.year) {
+    query = query
+      .gte("purchase_date", `${params.year}-01-01`)
+      .lte("purchase_date", `${params.year}-12-31`);
+  }
+  if (params.place) query = query.eq("purchase_place", params.place);
   if (params.q) {
     query = query.or(
       `title.ilike.%${params.q}%,series.ilike.%${params.q}%,character.ilike.%${params.q}%`
@@ -61,7 +67,11 @@ export default async function CollectionPage({
 
       <div className="mb-6">
         <Suspense>
-          <CollectionFilters seriesList={seriesList} />
+          <CollectionFilters
+            seriesList={seriesList}
+            activeYear={params.year}
+            activePlace={params.place}
+          />
         </Suspense>
       </div>
 

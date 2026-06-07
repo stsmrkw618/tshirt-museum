@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function AnalyticsPage() {
   const supabase = await createClient();
@@ -55,11 +56,15 @@ export default async function AnalyticsPage() {
         <h2 className="text-white font-semibold mb-4">作品ランキング</h2>
         <div className="space-y-2">
           {seriesRanking.map(([series, count], i) => (
-            <div key={series} className="flex items-center gap-3">
+            <Link
+              key={series}
+              href={`/collection?series=${encodeURIComponent(series)}`}
+              className="flex items-center gap-3 rounded-lg px-2 py-1 -mx-2 hover:bg-zinc-900 transition-colors group"
+            >
               <span className="text-zinc-500 text-sm w-5 text-right">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-white text-sm truncate">{series}</span>
+                  <span className="text-white text-sm truncate group-hover:text-zinc-200">{series}</span>
                   <span className="text-zinc-400 text-sm ml-2">{count}枚</span>
                 </div>
                 <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
@@ -69,7 +74,7 @@ export default async function AnalyticsPage() {
                   />
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -80,8 +85,12 @@ export default async function AnalyticsPage() {
           <h2 className="text-white font-semibold mb-4">年別購入数</h2>
           <div className="space-y-2">
             {yearData.map(([year, count]) => (
-              <div key={year} className="flex items-center gap-3">
-                <span className="text-zinc-400 text-sm w-12">{year}</span>
+              <Link
+                key={year}
+                href={`/collection?year=${year}`}
+                className="flex items-center gap-3 rounded-lg px-2 py-1 -mx-2 hover:bg-zinc-900 transition-colors group"
+              >
+                <span className="text-zinc-400 text-sm w-12 group-hover:text-white transition-colors">{year}</span>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-0.5">
                     <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden flex-1 mr-3">
@@ -93,7 +102,7 @@ export default async function AnalyticsPage() {
                     <span className="text-zinc-400 text-sm w-8 text-right">{count}枚</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
@@ -105,11 +114,15 @@ export default async function AnalyticsPage() {
           <h2 className="text-white font-semibold mb-4">購入場所ランキング</h2>
           <div className="space-y-2">
             {placeRanking.map(([place, count], i) => (
-              <div key={place} className="flex items-center gap-3">
+              <Link
+                key={place}
+                href={`/collection?place=${encodeURIComponent(place)}`}
+                className="flex items-center gap-3 rounded-lg px-2 py-1 -mx-2 hover:bg-zinc-900 transition-colors group"
+              >
                 <span className="text-zinc-500 text-sm w-5 text-right">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-white text-sm truncate">{place}</span>
+                    <span className="text-white text-sm truncate group-hover:text-zinc-200">{place}</span>
                     <span className="text-zinc-400 text-sm ml-2">{count}枚</span>
                   </div>
                   <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
@@ -119,7 +132,7 @@ export default async function AnalyticsPage() {
                     />
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
