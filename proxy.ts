@@ -49,6 +49,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // PWA関連リソース（manifest, アイコン, SW）は未認証でも取得できるよう除外
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|pwa-icon|sw\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
