@@ -9,10 +9,13 @@ type Item = { id: string; title: string; series: string; image_url: string | nul
 
 const AUTOPLAY_MS = 5000;
 const KB_COUNT = 4;
+const MIN_COLS = 1;
+const MAX_COLS = 5;
 
 export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
   const [items, setItems] = useState(initialItems);
   const [mode, setMode] = useState<"grid" | "slideshow">("grid");
+  const [cols, setCols] = useState(2);
   const [idx, setIdx] = useState(0);
   const [showInfo, setShowInfo] = useState(true);
   const [autoPlay, setAutoPlay] = useState(false);
@@ -20,6 +23,57 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
   const [kbVariant, setKbVariant] = useState(0);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const pinchStartDist = useRef<number | null>(null);
+  const pinchCurrentDist = useRef<number | null>(null);
+
+  // 画面幅に応じた初期列数
+  useEffect(() => {
+    const w = window.innerWidth;
+    if (w >= 1024) setCols(5);
+    else if (w >= 768) setCols(4);
+    else if (w >= 640) setCols(3);
+  }, []);
+
+  // ピンチ中のブラウザズームを抑制（passive:false が必要なため native listener）
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        pinchCurrentDist.current = Math.sqrt(dx * dx + dy * dy);
+      }
+    };
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    return () => el.removeEventListener("touchmove", handleTouchMove);
+  }, []);
+
+  const onGridTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      pinchStartDist.current = d;
+      pinchCurrentDist.current = d;
+    }
+  };
+
+  const onGridTouchEnd = () => {
+    const start = pinchStartDist.current;
+    const current = pinchCurrentDist.current;
+    if (start !== null && current !== null) {
+      const ratio = current / start;
+      // 指を広げる → 列数を減らす（画像を大きく）
+      if (ratio > 1.3) setCols((c) => Math.max(MIN_COLS, c - 1));
+      // 指を縮める → 列数を増やす（画像を小さく）
+      else if (ratio < 0.75) setCols((c) => Math.min(MAX_COLS, c + 1));
+      pinchStartDist.current = null;
+      pinchCurrentDist.current = null;
+    }
+  };
 
   const goTo = (newIdx: number) => {
     setFadingIdx(idx);
@@ -67,7 +121,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [mode, idx]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // タッチスワイプ
+  // タッチスワイプ（スライドショー用）
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -241,7 +295,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
 
   // ─── グリッドモード ────────────────────────────────────
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black" ref={gridRef} onTouchStart={onGridTouchStart} onTouchEnd={onGridTouchEnd}>
       <div className="flex justify-end items-center gap-4 px-4 pt-3">
         <button
           onClick={shuffle}
@@ -249,6 +303,15 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
         >
           <Shuffle size={13} />
           シャッフル
+        </button>
+        {/* 列数インジケーター（タップで切替） */}
+        <button
+          onClick={() => setCols((c) => (c >= MAX_COLS ? MIN_COLS : c + 1))}
+          className="text-zinc-500 hover:text-white text-sm flex items-center gap-1 transition-colors"
+          title="列数を変更（ピンチでも操作可）"
+        >
+          <LayoutGrid size={13} />
+          {cols}列
         </button>
         <button
           onClick={() => { setIdx(0); setMode("slideshow"); }}
@@ -260,7 +323,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
       </div>
 
       <div className="max-w-7xl mx-auto px-2 pb-4 pt-2">
-        <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-2 space-y-2">
+        <div className="gap-2 space-y-2" style={{ columnCount: cols }}>
           {items.map((t, i) => (
             <button
               key={t.id}
