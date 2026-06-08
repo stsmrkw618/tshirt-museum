@@ -66,9 +66,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
     const current = pinchCurrentDist.current;
     if (start !== null && current !== null) {
       const ratio = current / start;
-      // 指を広げる → 列数を減らす（画像を大きく）
       if (ratio > 1.3) setCols((c) => Math.max(MIN_COLS, c - 1));
-      // 指を縮める → 列数を増やす（画像を小さく）
       else if (ratio < 0.75) setCols((c) => Math.min(MAX_COLS, c + 1));
       pinchStartDist.current = null;
       pinchCurrentDist.current = null;
@@ -107,6 +105,14 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
     const t = setTimeout(() => setFadingIdx(null), 1200);
     return () => clearTimeout(t);
   }, [fadingIdx, idx]);
+
+  // スライド切り替え時に情報を3秒表示→自動非表示
+  useEffect(() => {
+    if (mode !== "slideshow") return;
+    setShowInfo(true);
+    const t = setTimeout(() => setShowInfo(false), 3000);
+    return () => clearTimeout(t);
+  }, [idx, mode]);
 
   // キーボード操作
   useEffect(() => {
@@ -187,7 +193,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
             </div>
           </div>
 
-          {/* 画像エリア（クロスフェード + Ken Burns） */}
+          {/* 画像エリア：フル活用、ナビゲーションも内部に浮かせる */}
           <div
             className="flex-1 relative cursor-pointer overflow-hidden"
             onClick={() => setShowInfo((s) => !s)}
@@ -199,12 +205,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
                 className="absolute inset-0"
                 style={{ animation: "xFadeOut 0.9s ease-in-out forwards" }}
               >
-                <Image
-                  src={items[fadingIdx].image_url!}
-                  alt=""
-                  fill
-                  className="object-contain"
-                />
+                <Image src={items[fadingIdx].image_url!} alt="" fill className="object-contain" />
               </div>
             )}
 
@@ -217,13 +218,7 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
               }}
             >
               {item?.image_url ? (
-                <Image
-                  src={item.image_url}
-                  alt={item.title}
-                  fill
-                  className="object-contain"
-                  priority
-                />
+                <Image src={item.image_url} alt={item.title} fill className="object-contain" priority />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-zinc-700">
                   No Image
@@ -231,7 +226,43 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
               )}
             </div>
 
-            {/* 情報オーバーレイ（タップで表示切替） */}
+            {/* 左：前へボタン */}
+            <button
+              onClick={(e) => { e.stopPropagation(); prev(); }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white hover:bg-black/50 transition-all"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            {/* 右：次へボタン */}
+            <button
+              onClick={(e) => { e.stopPropagation(); next(); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white hover:bg-black/50 transition-all"
+            >
+              <ChevronRight size={20} />
+            </button>
+
+            {/* ドットインジケーター（画像内・情報の上） */}
+            <div className="absolute bottom-24 left-0 right-0 flex justify-center z-20 pointer-events-none">
+              <div className="flex items-center gap-1.5 pointer-events-auto">
+                {items
+                  .slice(Math.max(0, idx - 3), Math.min(items.length, idx + 4))
+                  .map((_, i) => {
+                    const ai = Math.max(0, idx - 3) + i;
+                    return (
+                      <button
+                        key={ai}
+                        onClick={(e) => { e.stopPropagation(); goTo(ai); }}
+                        className={`h-1.5 rounded-full flex-shrink-0 transition-all duration-300 ${
+                          ai === idx ? "w-5 bg-white" : "w-1.5 bg-white/30 hover:bg-white/60"
+                        }`}
+                      />
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* 情報オーバーレイ（3秒後自動非表示、タップで再表示） */}
             <div
               className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pb-6 pt-20 px-6 transition-opacity duration-500 z-10 pointer-events-none ${
                 showInfo ? "opacity-100" : "opacity-0"
@@ -251,43 +282,6 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
               )}
             </div>
           </div>
-
-          {/* ナビゲーション */}
-          <div className="relative z-10 flex items-center justify-between px-6 py-4 flex-shrink-0">
-            <button
-              onClick={prev}
-              className="w-11 h-11 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/15 transition-colors"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            {/* ドットインジケーター（アクティブは横長ピル） */}
-            <div className="flex items-center gap-1.5 overflow-hidden max-w-[180px]">
-              {items
-                .slice(Math.max(0, idx - 3), Math.min(items.length, idx + 4))
-                .map((_, i) => {
-                  const ai = Math.max(0, idx - 3) + i;
-                  return (
-                    <button
-                      key={ai}
-                      onClick={() => goTo(ai)}
-                      className={`h-1.5 rounded-full flex-shrink-0 transition-all duration-300 ${
-                        ai === idx
-                          ? "w-5 bg-white"
-                          : "w-1.5 bg-zinc-600 hover:bg-zinc-400"
-                      }`}
-                    />
-                  );
-                })}
-            </div>
-
-            <button
-              onClick={next}
-              className="w-11 h-11 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/15 transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
         </div>
       </>
     );
@@ -304,7 +298,6 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
           <Shuffle size={13} />
           シャッフル
         </button>
-        {/* 列数インジケーター（タップで切替） */}
         <button
           onClick={() => setCols((c) => (c >= MAX_COLS ? MIN_COLS : c + 1))}
           className="text-zinc-500 hover:text-white text-sm flex items-center gap-1 transition-colors"
@@ -345,13 +338,18 @@ export function ExhibitClient({ items: initialItems }: { items: Item[] }) {
                   </div>
                 )}
               </div>
-              {/* ホバーオーバーレイ：グラデーション + テキストスライドイン */}
+              {/* ホバーオーバーレイ（デスクトップ） */}
               <div className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
                   <p className="text-white text-xs font-semibold truncate drop-shadow">{t.title}</p>
                   <p className="text-zinc-400 text-xs truncate">{t.series}</p>
                 </div>
+              </div>
+              {/* モバイル用：常時表示のテキストラベル */}
+              <div className="sm:hidden mt-1 px-0.5">
+                <p className="text-white text-xs truncate">{t.title}</p>
+                <p className="text-zinc-500 text-[10px] truncate">{t.series}</p>
               </div>
             </button>
           ))}

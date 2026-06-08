@@ -14,53 +14,55 @@ function getDayPick(items: Tshirt[]): Tshirt | null {
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ count }, { data: recent }, { data: priceData }, { data: allItems }] =
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+  const [{ count }, { data: recent }, { data: priceData }, { data: allItems }, { count: monthCount }] =
     await Promise.all([
       supabase.from("tshirts").select("*", { count: "exact", head: true }),
-      supabase
-        .from("tshirts")
-        .select("id,title,series,thumb_url")
-        .order("created_at", { ascending: false })
-        .limit(5),
+      supabase.from("tshirts").select("id,title,series,thumb_url").order("created_at", { ascending: false }).limit(5),
       supabase.from("tshirts").select("purchase_price"),
       supabase.from("tshirts").select("*"),
+      supabase.from("tshirts").select("*", { count: "exact", head: true }).gte("created_at", monthStart),
     ]);
 
-  const totalPrice =
-    priceData?.reduce((sum, t) => sum + (t.purchase_price ?? 0), 0) ?? 0;
-
+  const totalPrice = priceData?.reduce((sum, t) => sum + (t.purchase_price ?? 0), 0) ?? 0;
   const todayItem = getDayPick(allItems ?? []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
-      {/* stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-zinc-900 rounded-xl p-6">
-          <p className="text-zinc-400 text-sm">コレクション総数</p>
-          <p className="text-4xl font-bold text-white mt-1">
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      {/* 今日の1枚：ヒーローとして最上部に */}
+      {todayItem && <TodayPick item={todayItem} />}
+
+      {/* 統計カード */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-zinc-900 rounded-xl p-5">
+          <p className="text-zinc-500 text-xs uppercase tracking-wider">コレクション</p>
+          <p className="text-6xl font-black text-white mt-1 tracking-tighter tabular-nums leading-none">
             {count ?? 0}
-            <span className="text-lg text-zinc-400 ml-1">枚</span>
           </p>
+          <p className="text-zinc-500 text-xs mt-1.5">枚</p>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-6">
-          <p className="text-zinc-400 text-sm">総購入金額</p>
-          <p className="text-4xl font-bold text-white mt-1">
+        <div className="bg-zinc-900 rounded-xl p-5">
+          <p className="text-zinc-500 text-xs uppercase tracking-wider">今月追加</p>
+          <p className="text-6xl font-black text-white mt-1 tracking-tighter tabular-nums leading-none">
+            {monthCount ?? 0}
+          </p>
+          <p className="text-zinc-500 text-xs mt-1.5">枚</p>
+        </div>
+        <div className="col-span-2 bg-zinc-900 rounded-xl p-5">
+          <p className="text-zinc-500 text-xs uppercase tracking-wider">総購入金額</p>
+          <p className="text-4xl font-black text-white mt-1 tracking-tighter tabular-nums">
             ¥{totalPrice.toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* today's pick（サーバーサイド・ちらつきなし） */}
-      {todayItem && <TodayPick item={todayItem} />}
-
-      {/* recent */}
+      {/* 最近追加 */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">最近追加したアイテム</h2>
-          <Link
-            href="/collection"
-            className="text-zinc-400 text-sm hover:text-white transition-colors"
-          >
+          <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest">最近追加</h2>
+          <Link href="/collection" className="text-zinc-500 text-sm hover:text-white transition-colors">
             すべて見る →
           </Link>
         </div>
@@ -68,8 +70,8 @@ export default async function HomePage() {
           <div className="grid grid-cols-5 gap-3">
             {recent.map((t) => (
               <Link key={t.id} href={`/collection/${t.id}`} className="group">
-                <div className="aspect-[3/4] bg-zinc-900 rounded-lg overflow-hidden">
-                  {t.thumb_url ? (
+                <div className={`aspect-[3/4] rounded-lg overflow-hidden ${t.thumb_url ? "bg-zinc-800 animate-pulse" : "bg-zinc-900"}`}>
+                  {t.thumb_url && (
                     <Image
                       src={t.thumb_url}
                       alt={t.title}
@@ -77,10 +79,6 @@ export default async function HomePage() {
                       height={267}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-700 text-xs">
-                      No Image
-                    </div>
                   )}
                 </div>
                 <p className="text-white text-xs mt-1.5 truncate">{t.title}</p>

@@ -62,7 +62,6 @@ export function TshirtForm({ initialData }: { initialData?: Tshirt }) {
         const { data: { publicUrl } } = supabase.storage.from("tshirts").getPublicUrl(filename);
         image_url = publicUrl;
 
-        // サムネイル用に同じ画像を別名で保存（Next.js Imageで最適化）
         await supabase.storage.from("tshirts").upload(thumbFilename, imageFile, { upsert: true });
         const { data: { publicUrl: thumbPublicUrl } } = supabase.storage.from("tshirts").getPublicUrl(thumbFilename);
         thumb_url = thumbPublicUrl;
@@ -97,9 +96,12 @@ export function TshirtForm({ initialData }: { initialData?: Tshirt }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* image upload */}
+      {/* 画像アップロード */}
       <div>
-        <label className="block text-zinc-400 text-sm mb-2">画像 <span className="text-white">*</span></label>
+        <label className="flex items-center gap-2 text-zinc-400 text-sm mb-2">
+          画像
+          <span className="text-xs text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">必須</span>
+        </label>
         <div
           onClick={() => fileRef.current?.click()}
           className="cursor-pointer border-2 border-dashed border-zinc-700 rounded-xl aspect-square max-w-xs mx-auto flex items-center justify-center overflow-hidden hover:border-zinc-500 transition-colors"
@@ -173,8 +175,12 @@ export function TshirtForm({ initialData }: { initialData?: Tshirt }) {
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-zinc-400 text-sm mb-1">
-        {label} {required && <span className="text-white">*</span>}
+      <label className="flex items-center gap-1.5 text-zinc-400 text-sm mb-1">
+        {label}
+        {required
+          ? <span className="text-xs text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">必須</span>
+          : <span className="text-xs text-zinc-700 px-1.5 py-0.5 rounded border border-zinc-800">任意</span>
+        }
       </label>
       {children}
     </div>

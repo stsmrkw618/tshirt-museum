@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Pencil, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { WearLogSection } from "@/components/wear-log-section";
+import { AmbientImage } from "@/components/ambient-image";
 
 export default async function TshirtDetailPage({
   params,
@@ -78,22 +78,14 @@ export default async function TshirtDetailPage({
         </div>
       </div>
 
-      {/* 画像 */}
-      <div className="bg-zinc-900 rounded-xl overflow-hidden mb-6 aspect-[3/4] max-h-[480px] mx-auto">
-        {tshirt.image_url ? (
-          <Image
-            src={tshirt.image_url}
-            alt={tshirt.title}
-            width={600}
-            height={800}
-            className="w-full h-full object-contain"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-zinc-600">
-            No Image
-          </div>
-        )}
-      </div>
+      {/* 画像（アンビエントモード） */}
+      {tshirt.image_url ? (
+        <AmbientImage src={tshirt.image_url} alt={tshirt.title} />
+      ) : (
+        <div className="bg-zinc-900 rounded-xl overflow-hidden mb-6 aspect-[3/4] max-h-[480px] mx-auto flex items-center justify-center text-zinc-600">
+          No Image
+        </div>
+      )}
 
       {/* タイトル */}
       <h1 className="text-2xl font-bold text-white mb-1">{tshirt.title}</h1>

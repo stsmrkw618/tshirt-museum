@@ -35,7 +35,7 @@ export default async function RootLayout({
       <body className="min-h-full bg-black text-white antialiased">
         <ServiceWorker />
         {user && <Navigation />}
-        <main className={user ? "pt-14" : ""}>{children}</main>
+        <main className={user ? "pt-14 pb-16 sm:pb-0" : ""}>{children}</main>
       </body>
     </html>
   );
