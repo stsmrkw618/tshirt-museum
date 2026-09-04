@@ -33,16 +33,20 @@ export function CollectionGrid({ tshirts }: { tshirts: Item[] }) {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
       {tshirts.map((t) => (
         <Link key={t.id} href={`/collection/${t.id}`} className="group">
-          {/* shimmer: 画像ロード前はアニメーションpulseが見える、ロード後は画像で覆われる */}
-          <div className={`aspect-[3/4] rounded-lg overflow-hidden relative ${t.thumb_url ? "bg-zinc-800 animate-pulse" : "bg-zinc-900"}`}>
+          {/* shimmer: pulseは背後の別レイヤーに置く。親にanimate-pulseを付けると
+              opacityが子のImageまで継承され、ロード後も画像が明滅してしまうため。 */}
+          <div className="aspect-[3/4] rounded-lg overflow-hidden relative bg-zinc-900">
             {t.thumb_url ? (
-              <Image
-                src={t.thumb_url}
-                alt={t.title}
-                width={300}
-                height={400}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+              <>
+                <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
+                <Image
+                  src={t.thumb_url}
+                  alt={t.title}
+                  width={300}
+                  height={400}
+                  className="relative w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-700 text-xs">
                 No Image

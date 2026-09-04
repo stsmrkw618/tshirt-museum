@@ -70,15 +70,18 @@ export default async function HomePage() {
           <div className="grid grid-cols-5 gap-3">
             {recent.map((t) => (
               <Link key={t.id} href={`/collection/${t.id}`} className="group">
-                <div className={`aspect-[3/4] rounded-lg overflow-hidden ${t.thumb_url ? "bg-zinc-800 animate-pulse" : "bg-zinc-900"}`}>
+                <div className="aspect-[3/4] rounded-lg overflow-hidden relative bg-zinc-900">
                   {t.thumb_url && (
-                    <Image
-                      src={t.thumb_url}
-                      alt={t.title}
-                      width={200}
-                      height={267}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    <>
+                      <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
+                      <Image
+                        src={t.thumb_url}
+                        alt={t.title}
+                        width={200}
+                        height={267}
+                        className="relative w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </>
                   )}
                 </div>
                 <p className="text-white text-xs mt-1.5 truncate">{t.title}</p>
